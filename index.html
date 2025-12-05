@@ -1,0 +1,276 @@
+import React, { useState } from 'react';
+import { Award, RefreshCw, ArrowLeft, CheckCircle, HelpCircle } from 'lucide-react';
+
+// Game Data extracted from uploaded observation documents
+const gameData = {
+  categories: [
+    {
+      title: "Intellectual Dev.",
+      questions: [
+        {
+          points: 100,
+          clue: "Guiding them on how to write a CERC. Our department focus is on supporting the CMAS results.",
+          answer: "Who is Leslie Gardner?"
+        },
+        {
+          points: 200,
+          clue: "Compacted class, 4th graders learning 5th grade math.",
+          answer: "Who is Erin Trigonoplos?"
+        },
+        {
+          points: 300,
+          clue: "Uses technology to help by color coding to break problem down/apart. She modeled this and then I noticed other students doing it.",
+          answer: "Who is Erin Trigonoplos?"
+        },
+        {
+          points: 400,
+          clue: "Analyzed the transitions of value and process consistency... from Hammurabi to the 10 commandments.",
+          answer: "Who is Leslie Gardner?"
+        },
+        {
+          points: 500,
+          clue: "Data discussions - teacher, principal, GT, iReady, CMAS. Good for compacted math.",
+          answer: "Who is Erin Trigonoplos?"
+        }
+      ]
+    },
+    {
+      title: "Physical Dev.",
+      questions: [
+        {
+          points: 100,
+          clue: "Seating in my room changes constantly to support learning needs. Moving around the room to answer questions.",
+          answer: "Who is Leslie Gardner?"
+        },
+        {
+          points: 200,
+          clue: "Kids were allowed to pick seats. 'Sit next to a good learning partner.'",
+          answer: "Who is Erin Trigonoplos?"
+        },
+        {
+          points: 300,
+          clue: "Students chose chairs that support their movement needs. Access to fidgets.",
+          answer: "Who is Leslie Gardner?"
+        },
+        {
+          points: 400,
+          clue: "Shared/collaborative space in library. Open dialogue on the space.",
+          answer: "Who is Erin Trigonoplos?"
+        },
+        {
+          points: 500,
+          clue: "Modeling on screen. Girls sit together, boys sit together (observation note).",
+          answer: "Who is Leslie Gardner?"
+        }
+      ]
+    },
+    {
+      title: "Social Dev.",
+      questions: [
+        {
+          points: 100,
+          clue: "Goal is for every student to know the names of every student in the class by the end of the quarter.",
+          answer: "Who is Leslie Gardner?"
+        },
+        {
+          points: 200,
+          clue: "Class, lets help Isaac and Harper and learn together. Ask a friend for help.",
+          answer: "Who is Erin Trigonoplos?"
+        },
+        {
+          points: 300,
+          clue: "Philosophical Chairs on Just and Fair and the 'act it out' skits.",
+          answer: "Who is Leslie Gardner?"
+        },
+        {
+          points: 400,
+          clue: "One student would answer and then call on another to answer the next question.",
+          answer: "Who is Erin Trigonoplos?"
+        },
+        {
+          points: 500,
+          clue: "Inclusion activities at the start of each unit. Peer support and collaboration.",
+          answer: "Who is Leslie Gardner?"
+        }
+      ]
+    },
+    {
+      title: "Emotional Dev.",
+      questions: [
+        {
+          points: 100,
+          clue: "Instead of telling kids how to behave... she asks them, 'are you behaving?' Lets them realize their behavior is inappropriate.",
+          answer: "Who is Erin Trigonoplos?"
+        },
+        {
+          points: 200,
+          clue: "Positive reinforcement verbally and with code cards... 'thank you for being brave and letting us use your text'.",
+          answer: "Who is Leslie Gardner?"
+        },
+        {
+          points: 300,
+          clue: "Gracefully allow students to correct her mistakes. Autonomy.",
+          answer: "Who is Erin Trigonoplos?"
+        },
+        {
+          points: 400,
+          clue: "Encouraging voice typing for all when they feel they are getting behind. Choice in laws they picked.",
+          answer: "Who is Leslie Gardner?"
+        },
+        {
+          points: 500,
+          clue: "'Waterfall' word to get class to be quiet or calm down.",
+          answer: "Who is Erin Trigonoplos?"
+        }
+      ]
+    }
+  ]
+};
+
+export default function JeopardyGame() {
+  const [activeQuestion, setActiveQuestion] = useState(null);
+  const [completedQuestions, setCompletedQuestions] = useState([]);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [score, setScore] = useState(0);
+
+  const handleQuestionClick = (categoryIndex, questionIndex, points) => {
+    const questionId = `${categoryIndex}-${questionIndex}`;
+    if (!completedQuestions.includes(questionId)) {
+      setActiveQuestion({ ...gameData.categories[categoryIndex].questions[questionIndex], id: questionId });
+      setShowAnswer(false);
+    }
+  };
+
+  const handleCloseQuestion = (correct) => {
+    if (activeQuestion) {
+      setCompletedQuestions([...completedQuestions, activeQuestion.id]);
+      if (correct) {
+        setScore(score + activeQuestion.points);
+      }
+      setActiveQuestion(null);
+    }
+  };
+
+  const resetGame = () => {
+    setCompletedQuestions([]);
+    setActiveQuestion(null);
+    setScore(0);
+    setShowAnswer(false);
+  };
+
+  if (activeQuestion) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-blue-900 p-6 text-center text-white font-sans">
+        <div className="max-w-4xl w-full bg-blue-800 rounded-xl shadow-2xl border-4 border-yellow-400 p-8 flex flex-col items-center min-h-[500px] justify-between">
+          
+          <div className="w-full flex justify-between items-center mb-6">
+             <span className="text-yellow-400 font-bold text-2xl">${activeQuestion.points}</span>
+             <span className="text-blue-300 uppercase tracking-widest font-semibold">TQS 3A Observation Note</span>
+          </div>
+
+          <div className="flex-grow flex items-center justify-center">
+            <h2 className="text-3xl md:text-5xl font-serif font-bold leading-tight uppercase drop-shadow-md">
+              {showAnswer ? activeQuestion.answer : activeQuestion.clue}
+            </h2>
+          </div>
+
+          <div className="mt-12 w-full flex flex-col gap-4">
+            {!showAnswer ? (
+              <button
+                onClick={() => setShowAnswer(true)}
+                className="bg-yellow-500 hover:bg-yellow-400 text-blue-900 font-bold py-4 px-8 rounded-full text-xl transition-transform hover:scale-105 shadow-lg w-full md:w-auto mx-auto"
+              >
+                Reveal Answer
+              </button>
+            ) : (
+              <div className="flex flex-col md:flex-row gap-4 justify-center w-full">
+                <button
+                  onClick={() => handleCloseQuestion(true)}
+                  className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors w-full md:w-auto"
+                >
+                  <CheckCircle size={24} /> I got it right (+${activeQuestion.points})
+                </button>
+                <button
+                  onClick={() => handleCloseQuestion(false)}
+                  className="flex items-center justify-center gap-2 bg-gray-600 hover:bg-gray-500 text-gray-200 font-bold py-3 px-6 rounded-lg text-lg transition-colors w-full md:w-auto"
+                >
+                  <ArrowLeft size={24} /> Back to Board
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-900 text-white p-4 md:p-8 font-sans">
+      
+      {/* Header */}
+      <header className="flex flex-col md:flex-row justify-between items-center mb-8 border-b-4 border-yellow-500 pb-4">
+        <div className="mb-4 md:mb-0">
+            <h1 className="text-4xl md:text-5xl font-bold text-yellow-400 uppercase tracking-wider drop-shadow-lg" style={{ fontFamily: 'Impact, sans-serif' }}>
+            Jeopardy!
+            </h1>
+            <p className="text-blue-300 mt-1 text-lg">Teacher Quality Standard 3A Edition</p>
+        </div>
+        <div className="flex items-center gap-6">
+            <div className="bg-blue-800 border-2 border-blue-500 px-6 py-3 rounded-lg flex items-center gap-3">
+                <Award className="text-yellow-400" size={32} />
+                <div className="flex flex-col text-right">
+                    <span className="text-xs text-blue-300 uppercase">Current Score</span>
+                    <span className="text-3xl font-mono font-bold">${score}</span>
+                </div>
+            </div>
+            <button 
+                onClick={resetGame}
+                className="bg-slate-700 hover:bg-slate-600 p-3 rounded-full transition-colors text-slate-300 hover:text-white"
+                title="Reset Game"
+            >
+                <RefreshCw size={24} />
+            </button>
+        </div>
+      </header>
+
+      {/* Game Board */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-7xl mx-auto">
+        {gameData.categories.map((category, catIndex) => (
+          <div key={catIndex} className="flex flex-col gap-3">
+            {/* Category Header */}
+            <div className="bg-blue-800 text-yellow-400 p-4 rounded-lg text-center font-bold text-lg md:text-xl border-b-4 border-blue-900 h-24 flex items-center justify-center shadow-lg">
+              <span className="uppercase tracking-wide leading-tight">{category.title}</span>
+            </div>
+            
+            {/* Questions Grid */}
+            {category.questions.map((question, qIndex) => {
+              const questionId = `${catIndex}-${qIndex}`;
+              const isCompleted = completedQuestions.includes(questionId);
+              
+              return (
+                <button
+                  key={qIndex}
+                  disabled={isCompleted}
+                  onClick={() => handleQuestionClick(catIndex, qIndex, question.points)}
+                  className={`
+                    h-20 md:h-32 rounded-lg font-bold text-2xl md:text-4xl shadow-md transition-all duration-300 border-2
+                    flex items-center justify-center font-mono
+                    ${isCompleted 
+                      ? 'bg-blue-950 text-blue-900 border-blue-900 cursor-default' 
+                      : 'bg-blue-700 text-yellow-400 border-blue-500 hover:bg-blue-600 hover:scale-105 hover:border-yellow-300 cursor-pointer'}
+                  `}
+                >
+                  {isCompleted ? '' : `$${question.points}`}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      <footer className="mt-12 text-center text-slate-500 text-sm">
+        <p>Based on classroom observation notes for Erin Trigonoplos and Leslie Gardner.</p>
+      </footer>
+    </div>
+  );
+}
