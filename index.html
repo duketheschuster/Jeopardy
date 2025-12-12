@@ -1,276 +1,557 @@
-import React, { useState } from 'react';
-import { Award, RefreshCw, ArrowLeft, CheckCircle, HelpCircle } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { RotateCcw, ChevronDown, ChevronUp, Printer, CheckSquare, Square, Download } from 'lucide-react';
 
-// Game Data extracted from uploaded observation documents
-const gameData = {
-  categories: [
+const RubricTool = () => {
+  // -------------------------------------------------------------------------
+  // DATA STRUCTURE
+  // -------------------------------------------------------------------------
+  const rubricData = [
     {
-      title: "Intellectual Dev.",
-      questions: [
+      id: 'QS1',
+      title: 'Quality Standard I',
+      subtitle: 'Content Mastery and Pedagogical Expertise',
+      description: 'Teachers demonstrate mastery of and pedagogical expertise in the content they teach.',
+      elements: [
         {
-          points: 100,
-          clue: "Guiding them on how to write a CERC. Our department focus is on supporting the CMAS results.",
-          answer: "Who is Leslie Gardner?"
+          id: '1a',
+          label: 'Element A',
+          description: 'Teachers provide instruction that is aligned with the Colorado Academic Standards, their District’s organized plan of instruction, and the individual needs of their students.',
+          levels: {
+            1: [
+              "1. Plans lessons that reflect Colorado Academic Standards.",
+              "2. Plans lessons that reflect relevant instructional objectives.",
+              "3. Plans lessons that reflect formative and summative assessment results."
+            ],
+            2: [
+              "1. Plans lessons that align with the District’s scope and sequence.",
+              "2. Plans lessons that align with the individual needs of students."
+            ],
+            3: [
+              "1. Implements lessons that align to the Colorado Academic Standards.",
+              "2. Implements lessons that align with the District's organized plan of instruction.",
+              "3. Implements lessons that meet the individual needs of students."
+            ],
+            4: [
+              "1. Scaffolds questions, concepts, and skills based on a sequence of learning.",
+              "2. Uses instructional materials that are accurate and appropriate for the lesson."
+            ],
+            5: [
+              "1. Students can explain how their current lesson connects to the broader unit or standards.",
+              "2. Students co-construct learning goals based on standards."
+            ]
+          }
         },
         {
-          points: 200,
-          clue: "Compacted class, 4th graders learning 5th grade math.",
-          answer: "Who is Erin Trigonoplos?"
+          id: '1b',
+          label: 'Element B',
+          description: 'Teachers demonstrate knowledge of student literacy development in reading, writing, speaking and listening.',
+          levels: {
+            1: ["1. Demonstrates basic awareness of literacy needs.", "2. Identifies literacy struggles in students."],
+            2: ["1. Incorporates literacy strategies occasionally.", "2. Uses vocabulary relevant to the content."],
+            3: ["1. Consistently integrates literacy into content instruction.", "2. Models effective writing, speaking, and listening.", "3. Uses discipline-specific literacy strategies."],
+            4: ["1. Differentiates literacy instruction for diverse learners.", "2. Anticipates student misconceptions regarding literacy."],
+            5: ["1. Students apply literacy skills to express complex content knowledge.", "2. Students identify their own literacy strengths and needs."]
+          }
         },
         {
-          points: 300,
-          clue: "Uses technology to help by color coding to break problem down/apart. She modeled this and then I noticed other students doing it.",
-          answer: "Who is Erin Trigonoplos?"
-        },
-        {
-          points: 400,
-          clue: "Analyzed the transitions of value and process consistency... from Hammurabi to the 10 commandments.",
-          answer: "Who is Leslie Gardner?"
-        },
-        {
-          points: 500,
-          clue: "Data discussions - teacher, principal, GT, iReady, CMAS. Good for compacted math.",
-          answer: "Who is Erin Trigonoplos?"
+          id: '1c',
+          label: 'Element C',
+          description: 'Teachers demonstrate knowledge of mathematics and understand how to promote student development in numbers and operations, algebra, geometry and measurement, and data analysis and probability.',
+          levels: {
+            1: ["1. Demonstrates basic math content knowledge.", "2. Follows the math curriculum strictly."],
+            2: ["1. Explains mathematical concepts clearly.", "2. Uses some manipulatives or tools."],
+            3: ["1. Promotes student development in number sense and operations.", "2. Promotes development in algebra, geometry, or data analysis.", "3. Connects math concepts to real-world contexts."],
+            4: ["1. Anticipates math misconceptions.", "2. Adapts instruction for various math ability levels."],
+            5: ["1. Students select appropriate math tools to solve problems.", "2. Students explain their mathematical reasoning to peers."]
+          }
         }
       ]
     },
     {
-      title: "Physical Dev.",
-      questions: [
+      id: 'QS2',
+      title: 'Quality Standard II',
+      subtitle: 'Safe, Inclusive, and Respectful Learning Environment',
+      elements: [
         {
-          points: 100,
-          clue: "Seating in my room changes constantly to support learning needs. Moving around the room to answer questions.",
-          answer: "Who is Leslie Gardner?"
+          id: '2a',
+          label: 'Element A',
+          description: 'Teachers foster a predictable learning environment characterized by acceptable student behavior and efficient use of time.',
+          levels: {
+            1: ["1. Maintains safety and welfare of students.", "2. States expectations for behavior."],
+            2: ["1. Implements classroom procedures.", "2. Uses time effectively for instruction."],
+            3: ["1. Fosters a positive, nurturing relationship with students.", "2. Maximizes instructional time.", "3. Consistently reinforces clear expectations."],
+            4: ["1. Demonstrates respect for diverse perspectives.", "2. Facilitates student-to-student respect."],
+            5: ["1. Students uphold the code of conduct.", "2. Students resolve conflicts constructively."]
+          }
         },
         {
-          points: 200,
-          clue: "Kids were allowed to pick seats. 'Sit next to a good learning partner.'",
-          answer: "Who is Erin Trigonoplos?"
+          id: '2b',
+          label: 'Element B',
+          description: 'Teachers demonstrate an awareness of, a commitment to, and a respect for multiple aspects of diversity.',
+          levels: {
+            1: ["1. Acknowledges diversity exists in the classroom."],
+            2: ["1. Uses materials that reflect some diversity.", "2. Avoids stereotypes."],
+            3: ["1. Respects multiple aspects of diversity.", "2. Works toward common goals as a community of learners."],
+            4: ["1. Adapts environment to support diverse needs.", "2. Incorporates diverse perspectives into lessons."],
+            5: ["1. Students advocate for the respect of others.", "2. Students share their own cultural perspectives."]
+          }
         },
         {
-          points: 300,
-          clue: "Students chose chairs that support their movement needs. Access to fidgets.",
-          answer: "Who is Leslie Gardner?"
-        },
-        {
-          points: 400,
-          clue: "Shared/collaborative space in library. Open dialogue on the space.",
-          answer: "Who is Erin Trigonoplos?"
-        },
-        {
-          points: 500,
-          clue: "Modeling on screen. Girls sit together, boys sit together (observation note).",
-          answer: "Who is Leslie Gardner?"
+          id: '2c',
+          label: 'Element C',
+          description: 'Teachers engage students as individuals, including those with diverse needs and interests.',
+          levels: {
+            1: ["1. Knows student names and some interests."],
+            2: ["1. Uses student interests to plan some lessons."],
+            3: ["1. Adapts teaching for the benefit of all students.", "2. Engages students with unique interests and strengths."],
+            4: ["1. Differentiates process, product, or content.", "2. Scaffolds for special needs."],
+            5: ["1. Students pursue their own interests within the curriculum.", "2. Students articulate their learning needs."]
+          }
         }
       ]
     },
     {
-      title: "Social Dev.",
-      questions: [
+      id: 'QS3',
+      title: 'Quality Standard III',
+      subtitle: 'Plan and Deliver Effective Instruction',
+      elements: [
         {
-          points: 100,
-          clue: "Goal is for every student to know the names of every student in the class by the end of the quarter.",
-          answer: "Who is Leslie Gardner?"
+          id: '3a',
+          label: 'Element A',
+          description: 'Teachers demonstrate knowledge about the ways in which learning takes place.',
+          levels: {
+             1: ["1. Considers developmental levels in planning."],
+             2: ["1. Uses data to plan instruction."],
+             3: ["1. Plans based on assessment results.", "2. Aligns instruction to standards.", "3. Advances student skills."],
+             4: ["1. Uses current research on effective practice.", "2. Adjusts instruction in real-time."],
+             5: ["1. Students track their own growth.", "2. Students set their own learning goals."]
+          }
         },
         {
-          points: 200,
-          clue: "Class, lets help Isaac and Harper and learn together. Ask a friend for help.",
-          answer: "Who is Erin Trigonoplos?"
-        },
-        {
-          points: 300,
-          clue: "Philosophical Chairs on Just and Fair and the 'act it out' skits.",
-          answer: "Who is Leslie Gardner?"
-        },
-        {
-          points: 400,
-          clue: "One student would answer and then call on another to answer the next question.",
-          answer: "Who is Erin Trigonoplos?"
-        },
-        {
-          points: 500,
-          clue: "Inclusion activities at the start of each unit. Peer support and collaboration.",
-          answer: "Who is Leslie Gardner?"
+            id: '3b',
+            label: 'Element B',
+            description: 'Teachers plan and consistently deliver instruction that draws on results of student assessments.',
+            levels: {
+                1: ["1. Uses a textbook to guide planning.", "2. Gives tests at end of units."],
+                2: ["1. Uses some formative assessment.", "2. Adjusts plans based on some data."],
+                3: ["1. Consistently delivers instruction based on assessment.", "2. Uses variety of data sources.", "3. Provides feedback to students."],
+                4: ["1. Differentiates based on assessment data.", "2. Uses range of formal/informal methods."],
+                5: ["1. Students use feedback to improve work.", "2. Students peer-assess."]
+            }
         }
       ]
     },
     {
-      title: "Emotional Dev.",
-      questions: [
+      id: 'QS4',
+      title: 'Quality Standard IV',
+      subtitle: 'Reflection and Professionalism',
+      description: 'Teachers reflect on their practice and demonstrate professionalism.',
+      elements: [
         {
-          points: 100,
-          clue: "Instead of telling kids how to behave... she asks them, 'are you behaving?' Lets them realize their behavior is inappropriate.",
-          answer: "Who is Erin Trigonoplos?"
+            id: '4a',
+            label: 'Element A',
+            description: 'Teachers demonstrate that they analyze student learning and apply what they learn to improve their practice.',
+            levels: {
+                1: ["1. Collects some student data."],
+                2: ["1. Analyzes data for whole class trends."],
+                3: ["1. Analyzes data for individual student needs.", "2. Applies analysis to improve future instruction."],
+                4: ["1. Collaborates with colleagues to analyze data.", "2. Adjusts long-term plans based on analysis."],
+                5: ["1. Students participate in data analysis of their own work.", "2. Students suggest instructional improvements."]
+            }
         },
         {
-          points: 200,
-          clue: "Positive reinforcement verbally and with code cards... 'thank you for being brave and letting us use your text'.",
-          answer: "Who is Leslie Gardner?"
-        },
+            id: '4b',
+            label: 'Element B',
+            description: 'Teachers link professional growth to their professional goals.',
+            levels: {
+                1: ["1. Participates in required PD."],
+                2: ["1. Sets professional goals."],
+                3: ["1. Selects PD aligned to professional goals.", "2. Applies PD learning to classroom practice."],
+                4: ["1. Seeks feedback from colleagues.", "2. Adjusts goals based on feedback/data."],
+                5: ["1. Leads professional learning for others.", "2. Models continuous improvement."]
+            }
+        }
+      ]
+    },
+    {
+      id: 'QS5',
+      title: 'Quality Standard V',
+      subtitle: 'Leadership',
+      description: 'Teachers demonstrate leadership in the school, the community, and the teaching profession.',
+      elements: [
         {
-          points: 300,
-          clue: "Gracefully allow students to correct her mistakes. Autonomy.",
-          answer: "Who is Erin Trigonoplos?"
-        },
-        {
-          points: 400,
-          clue: "Encouraging voice typing for all when they feel they are getting behind. Choice in laws they picked.",
-          answer: "Who is Leslie Gardner?"
-        },
-        {
-          points: 500,
-          clue: "'Waterfall' word to get class to be quiet or calm down.",
-          answer: "Who is Erin Trigonoplos?"
+            id: '5a',
+            label: 'Element A',
+            description: 'Teachers demonstrate leadership in the school.',
+            levels: {
+                1: ["1. Attends required school meetings."],
+                2: ["1. Participates in school committees."],
+                3: ["1. Collaborates with colleagues to improve school practices.", "2. Contributes to school culture."],
+                4: ["1. Leads school initiatives.", "2. Mentors other teachers."],
+                5: ["1. Advocates for school-wide improvements.", "2. Facilitates community partnerships."]
+            }
         }
       ]
     }
-  ]
-};
+  ];
 
-export default function JeopardyGame() {
-  const [activeQuestion, setActiveQuestion] = useState(null);
-  const [completedQuestions, setCompletedQuestions] = useState([]);
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [score, setScore] = useState(0);
+  // -------------------------------------------------------------------------
+  // STATE MANAGEMENT
+  // -------------------------------------------------------------------------
 
-  const handleQuestionClick = (categoryIndex, questionIndex, points) => {
-    const questionId = `${categoryIndex}-${questionIndex}`;
-    if (!completedQuestions.includes(questionId)) {
-      setActiveQuestion({ ...gameData.categories[categoryIndex].questions[questionIndex], id: questionId });
-      setShowAnswer(false);
+  const [checks, setChecks] = useState({});
+  const [expandedStd, setExpandedStd] = useState({ QS1: true });
+  const [expandedEl, setExpandedEl] = useState({ '1a': true });
+  
+  // Header State
+  const [teacherName, setTeacherName] = useState('');
+  const [evaluatorName, setEvaluatorName] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+
+  const toggleStandard = (id) => {
+    setExpandedStd(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const toggleElement = (id) => {
+    setExpandedEl(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleCheck = (elementId, level, index) => {
+    const key = `${elementId}-${level}-${index}`;
+    setChecks(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const clearAll = () => {
+    if (window.confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+      setChecks({});
+      setTeacherName('');
+      setEvaluatorName('');
     }
   };
 
-  const handleCloseQuestion = (correct) => {
-    if (activeQuestion) {
-      setCompletedQuestions([...completedQuestions, activeQuestion.id]);
-      if (correct) {
-        setScore(score + activeQuestion.points);
-      }
-      setActiveQuestion(null);
+  // Fixed Print Handler
+  const handlePrint = () => {
+    // 1. Try standard window.print() wrapped in a timeout to ensure UI renders
+    setTimeout(() => {
+        try {
+            window.print();
+        } catch (error) {
+            console.error("Print failed:", error);
+            alert("The print dialog could not be opened automatically. Please press Ctrl + P (Windows) or Cmd + P (Mac) to save as PDF.");
+        }
+    }, 100);
+  };
+
+  // -------------------------------------------------------------------------
+  // SCORING LOGIC
+  // -------------------------------------------------------------------------
+  
+  const calculateElementScore = (element) => {
+    let score = 0;
+    
+    // Iterating through levels 1-5
+    for (let i = 1; i <= 5; i++) {
+        const totalItems = element.levels[i]?.length || 0;
+        if (totalItems === 0) continue;
+        
+        const checkedItems = element.levels[i]?.filter((_, idx) => checks[`${element.id}-${i}-${idx}`]).length || 0;
+        
+        // Add proportional score for this level
+        // (This logic assumes each level contributes 1.0 to the total score if fully checked)
+        // Note: Real CDE logic might be stricter (must pass L1 to get L2), but this is a flexible estimator.
+        
+        // Logic Adjustment:
+        // If previous level wasn't fully passed, we cap the score? 
+        // For this tool, we will use cumulative additive scoring for flexibility.
+        // If you check 50% of Level 1, you get 0.5. If you check 50% of Level 1 and 50% of Level 3, you get 1.0 (0.5 + 0.5).
+        // This is a rough estimation tool.
+        
+        // Better Logic for Rubrics:
+        // You get the highest level where all items are checked, plus a fraction of the next?
+        // Let's stick to the additive model used in previous version as it allows for "Partially Proficient" granular scoring.
+        
+        // We only add points for a level if the previous level is "mostly" done? 
+        // No, let's keep it simple: Sum of all checked boxes / Total boxes per level? 
+        // No, that weights levels with fewer boxes higher.
+        
+        // Standard Scoring: 
+        // Level 1 = 0-1 points (percentage of L1 boxes)
+        // Level 2 = 0-1 points (percentage of L2 boxes)
+        // ...
+        // BUT, you shouldn't get points for Level 5 if you haven't done Level 1.
+        // Let's implement a "Ceiling" logic.
+        
+        // Ceiling Logic: Stop counting if a level is < 50% complete? 
+        // Let's stick to the purely additive logic from V2 for consistency, but ensure it caps at 5.0.
+        
+        // Check if previous level was at least 50% complete before counting this level?
+        // Let's just do additive. It's the most user-friendly for self-reflection.
+        
+        score += (checkedItems / totalItems);
     }
+
+    return Math.min(score, 5).toFixed(1);
   };
 
-  const resetGame = () => {
-    setCompletedQuestions([]);
-    setActiveQuestion(null);
-    setScore(0);
-    setShowAnswer(false);
-  };
+  const stats = useMemo(() => {
+    const stdStats = {};
+    let totalSum = 0;
+    let totalCount = 0;
 
-  if (activeQuestion) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-blue-900 p-6 text-center text-white font-sans">
-        <div className="max-w-4xl w-full bg-blue-800 rounded-xl shadow-2xl border-4 border-yellow-400 p-8 flex flex-col items-center min-h-[500px] justify-between">
-          
-          <div className="w-full flex justify-between items-center mb-6">
-             <span className="text-yellow-400 font-bold text-2xl">${activeQuestion.points}</span>
-             <span className="text-blue-300 uppercase tracking-widest font-semibold">TQS 3A Observation Note</span>
-          </div>
+    rubricData.forEach(std => {
+      let stdSum = 0;
+      let stdCount = 0;
+      std.elements.forEach(el => {
+        const s = parseFloat(calculateElementScore(el));
+        stdSum += s;
+        stdCount++;
+      });
+      stdStats[std.id] = stdCount > 0 ? (stdSum / stdCount).toFixed(1) : '0.0';
+      totalSum += stdSum;
+      totalCount += stdCount;
+    });
 
-          <div className="flex-grow flex items-center justify-center">
-            <h2 className="text-3xl md:text-5xl font-serif font-bold leading-tight uppercase drop-shadow-md">
-              {showAnswer ? activeQuestion.answer : activeQuestion.clue}
-            </h2>
-          </div>
-
-          <div className="mt-12 w-full flex flex-col gap-4">
-            {!showAnswer ? (
-              <button
-                onClick={() => setShowAnswer(true)}
-                className="bg-yellow-500 hover:bg-yellow-400 text-blue-900 font-bold py-4 px-8 rounded-full text-xl transition-transform hover:scale-105 shadow-lg w-full md:w-auto mx-auto"
-              >
-                Reveal Answer
-              </button>
-            ) : (
-              <div className="flex flex-col md:flex-row gap-4 justify-center w-full">
-                <button
-                  onClick={() => handleCloseQuestion(true)}
-                  className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors w-full md:w-auto"
-                >
-                  <CheckCircle size={24} /> I got it right (+${activeQuestion.points})
-                </button>
-                <button
-                  onClick={() => handleCloseQuestion(false)}
-                  className="flex items-center justify-center gap-2 bg-gray-600 hover:bg-gray-500 text-gray-200 font-bold py-3 px-6 rounded-lg text-lg transition-colors w-full md:w-auto"
-                >
-                  <ArrowLeft size={24} /> Back to Board
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
+    return { stdStats, totalAvg: totalCount > 0 ? (totalSum / totalCount).toFixed(1) : '0.0' };
+  }, [checks, rubricData]);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-20 print:bg-white print:p-0">
       
-      {/* Header */}
-      <header className="flex flex-col md:flex-row justify-between items-center mb-8 border-b-4 border-yellow-500 pb-4">
-        <div className="mb-4 md:mb-0">
-            <h1 className="text-4xl md:text-5xl font-bold text-yellow-400 uppercase tracking-wider drop-shadow-lg" style={{ fontFamily: 'Impact, sans-serif' }}>
-            Jeopardy!
-            </h1>
-            <p className="text-blue-300 mt-1 text-lg">Teacher Quality Standard 3A Edition</p>
-        </div>
-        <div className="flex items-center gap-6">
-            <div className="bg-blue-800 border-2 border-blue-500 px-6 py-3 rounded-lg flex items-center gap-3">
-                <Award className="text-yellow-400" size={32} />
-                <div className="flex flex-col text-right">
-                    <span className="text-xs text-blue-300 uppercase">Current Score</span>
-                    <span className="text-3xl font-mono font-bold">${score}</span>
-                </div>
-            </div>
-            <button 
-                onClick={resetGame}
-                className="bg-slate-700 hover:bg-slate-600 p-3 rounded-full transition-colors text-slate-300 hover:text-white"
-                title="Reset Game"
-            >
-                <RefreshCw size={24} />
-            </button>
-        </div>
-      </header>
+      {/* -----------------------------------------------------------------------
+        STYLES FOR PRINTING
+        -----------------------------------------------------------------------
+      */}
+      <style>{`
+        @media print {
+          @page { margin: 0.5in; size: portrait; }
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+          .print-break-inside-avoid { break-inside: avoid; }
+          .print-container { padding: 0 !important; margin: 0 !important; max-width: none !important; width: 100% !important; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white; }
+          /* Force expanding all details for print */
+          .print-force-block { display: block !important; }
+        }
+        .print-only { display: none; }
+      `}</style>
 
-      {/* Game Board */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-7xl mx-auto">
-        {gameData.categories.map((category, catIndex) => (
-          <div key={catIndex} className="flex flex-col gap-3">
-            {/* Category Header */}
-            <div className="bg-blue-800 text-yellow-400 p-4 rounded-lg text-center font-bold text-lg md:text-xl border-b-4 border-blue-900 h-24 flex items-center justify-center shadow-lg">
-              <span className="uppercase tracking-wide leading-tight">{category.title}</span>
+      <div className="max-w-7xl mx-auto space-y-6 print-container p-4">
+        
+        {/* BRANDED HEADER */}
+        <header className="bg-[#1e4471] rounded-t-lg shadow-lg overflow-hidden print:shadow-none print:rounded-none print:border-b-2 print:border-[#eeb211]">
+          {/* Top Bar: Logo & Title */}
+          <div className="p-6 flex flex-col md:flex-row justify-between items-center gap-6 border-b-4 border-[#eeb211]">
+             <div className="flex items-center gap-4">
+               {/* Simple CSS Logo Representation for CDE */}
+               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shrink-0 border-2 border-[#eeb211] print:border-black">
+                 <div className="text-[#1e4471] font-black text-xl tracking-tighter leading-none text-center print:text-black">
+                   CO<br/><span className="text-sm">Dept of Ed</span>
+                 </div>
+               </div>
+               <div>
+                 <h1 className="text-2xl md:text-3xl font-bold text-white tracking-wide print:text-black">COLORADO</h1>
+                 <p className="text-[#eeb211] font-medium text-sm md:text-base tracking-widest uppercase print:text-black">Department of Education</p>
+                 <p className="text-blue-100 text-sm mt-1 print:text-slate-600">State Model Evaluation System: Teacher Rubric</p>
+               </div>
+             </div>
+
+             {/* Score Display (Visible on Screen) */}
+             <div className="bg-[#153456] rounded-lg p-4 text-center min-w-[140px] border border-blue-800 shadow-inner no-print">
+                <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-1">Overall Score</div>
+                <div className="text-3xl font-bold text-white">{stats.totalAvg}</div>
+             </div>
+          </div>
+
+          {/* Input Fields Bar (For PDF Export) */}
+          <div className="bg-white p-6 grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-slate-200 print:grid-cols-3 print:gap-4 print:py-4">
+             <div>
+               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Teacher Name</label>
+               <input 
+                 type="text" 
+                 className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-[#1e4471] focus:border-[#1e4471] outline-none transition-all placeholder-slate-300 print:border-none print:p-0 print:font-bold print:text-black"
+                 placeholder="Enter Name..."
+                 value={teacherName}
+                 onChange={(e) => setTeacherName(e.target.value)}
+               />
+             </div>
+             <div>
+               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Evaluator Name</label>
+               <input 
+                 type="text" 
+                 className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-[#1e4471] focus:border-[#1e4471] outline-none transition-all placeholder-slate-300 print:border-none print:p-0 print:font-bold print:text-black"
+                 placeholder="Enter Name..."
+                 value={evaluatorName}
+                 onChange={(e) => setEvaluatorName(e.target.value)}
+               />
+             </div>
+             <div>
+               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Date</label>
+               <input 
+                 type="date" 
+                 className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-[#1e4471] focus:border-[#1e4471] outline-none transition-all text-slate-600 print:border-none print:p-0 print:font-bold print:text-black"
+                 value={date}
+                 onChange={(e) => setDate(e.target.value)}
+               />
+             </div>
+          </div>
+
+          {/* Control Bar (Hidden on Print) */}
+          <div className="bg-slate-100 p-3 flex justify-between items-center border-t border-slate-200 no-print">
+            <div className="text-xs text-slate-500 italic px-2 hidden md:block">
+              * To save as PDF: Click the button, then select "Save as PDF" in the destination dropdown.
             </div>
-            
-            {/* Questions Grid */}
-            {category.questions.map((question, qIndex) => {
-              const questionId = `${catIndex}-${qIndex}`;
-              const isCompleted = completedQuestions.includes(questionId);
-              
-              return (
-                <button
-                  key={qIndex}
-                  disabled={isCompleted}
-                  onClick={() => handleQuestionClick(catIndex, qIndex, question.points)}
-                  className={`
-                    h-20 md:h-32 rounded-lg font-bold text-2xl md:text-4xl shadow-md transition-all duration-300 border-2
-                    flex items-center justify-center font-mono
-                    ${isCompleted 
-                      ? 'bg-blue-950 text-blue-900 border-blue-900 cursor-default' 
-                      : 'bg-blue-700 text-yellow-400 border-blue-500 hover:bg-blue-600 hover:scale-105 hover:border-yellow-300 cursor-pointer'}
-                  `}
-                >
-                  {isCompleted ? '' : `$${question.points}`}
-                </button>
-              );
-            })}
+            <div className="flex gap-2 w-full md:w-auto justify-end">
+               <button 
+                 type="button"
+                 onClick={handlePrint} 
+                 className="flex items-center gap-2 px-4 py-2 bg-[#1e4471] hover:bg-[#163458] text-white rounded-md text-sm font-bold shadow-sm transition-all cursor-pointer"
+               >
+                 <Printer size={16}/> Print / Save as PDF
+               </button>
+               <button 
+                 type="button"
+                 onClick={clearAll} 
+                 className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-red-50 text-red-600 border border-slate-200 rounded-md text-sm font-medium transition-all"
+               >
+                 <RotateCcw size={16}/> Reset
+               </button>
+            </div>
+          </div>
+        </header>
+
+        {/* PRINT ONLY SUMMARY HEADER */}
+        <div className="print-only mb-8">
+           <div className="border border-slate-300 rounded p-4 bg-slate-50 print:bg-white print:border-2">
+             <h2 className="text-lg font-bold text-[#1e4471] border-b border-slate-300 pb-2 mb-4 print:text-black">Evaluation Summary</h2>
+             <div className="grid grid-cols-2 gap-4 text-sm">
+                <div><span className="font-bold">Quality Standard I:</span> {stats.stdStats['QS1']}</div>
+                <div><span className="font-bold">Quality Standard II:</span> {stats.stdStats['QS2']}</div>
+                <div><span className="font-bold">Quality Standard III:</span> {stats.stdStats['QS3']}</div>
+                <div><span className="font-bold">Quality Standard IV:</span> {stats.stdStats['QS4']}</div>
+                <div><span className="font-bold">Quality Standard V:</span> {stats.stdStats['QS5']}</div>
+                <div className="mt-2 text-xl font-bold text-[#1e4471] border-t border-slate-300 pt-2 print:text-black">Overall Score: {stats.totalAvg}</div>
+             </div>
+           </div>
+        </div>
+
+        {/* STANDARDS CONTENT */}
+        <div className="space-y-6">
+        {rubricData.map(std => (
+          <div key={std.id} className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden print:shadow-none print:border-none print:mb-8 print-break-inside-avoid">
+            {/* Standard Header */}
+            <div 
+              className="bg-slate-50 p-4 flex justify-between items-center cursor-pointer border-b border-slate-200 print:bg-slate-100 print:border-black print:border-b-2"
+              onClick={() => toggleStandard(std.id)}
+            >
+              <div>
+                <h2 className="text-lg font-bold text-[#1e4471] print:text-black">{std.title}: <span className="font-normal text-slate-600 print:text-black">{std.subtitle}</span></h2>
+                <div className="text-xs text-slate-500 mt-1 print:text-slate-700">{std.description}</div>
+              </div>
+              <div className="flex items-center gap-4 no-print">
+                <span className="text-sm font-bold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">Avg: {stats.stdStats[std.id]}</span>
+                {expandedStd[std.id] ? <ChevronUp size={20} className="text-slate-400"/> : <ChevronDown size={20} className="text-slate-400"/>}
+              </div>
+              {/* Print Only Score Display */}
+              <div className="hidden print:block font-bold text-lg border-l-2 pl-4 border-black">
+                 Avg: {stats.stdStats[std.id]}
+              </div>
+            </div>
+
+            {/* Elements */}
+            <div className={`${expandedStd[std.id] ? 'block' : 'hidden'} print-force-block`}>
+              <div className="p-4 space-y-6 bg-slate-50/50 print:bg-white print:p-0 print:mt-4">
+                {std.elements.map(el => {
+                  const score = calculateElementScore(el);
+                  return (
+                    <div key={el.id} className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm print:shadow-none print:border-0 print:mb-6 print-break-inside-avoid">
+                      {/* Element Header */}
+                      <div 
+                        className="p-4 bg-white border-b border-slate-100 flex justify-between items-start cursor-pointer hover:bg-slate-50 transition-colors print:border-none print:p-0 print:mb-2"
+                        onClick={() => toggleElement(el.id)}
+                      >
+                        <div className="flex-1 pr-4">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="bg-[#1e4471] text-white text-xs font-bold px-2 py-0.5 rounded uppercase print:bg-black print:text-white">{el.label}</span>
+                            <span className={`text-sm font-bold no-print ${parseFloat(score) >= 3 ? 'text-green-600' : 'text-orange-500'}`}>
+                              Score: {score}
+                            </span>
+                            <span className="hidden print:inline-block font-bold text-sm ml-2">Score: {score}</span>
+                          </div>
+                          <p className="text-sm text-slate-700 print:text-black italic">{el.description}</p>
+                        </div>
+                        <div className="no-print">
+                           {expandedEl[el.id] ? <ChevronUp size={16} className="text-slate-300"/> : <ChevronDown size={16} className="text-slate-300"/>}
+                        </div>
+                      </div>
+
+                      {/* The Matrix */}
+                      <div className={`${expandedEl[el.id] ? 'block' : 'hidden'} print-force-block overflow-x-auto`}>
+                        <div className="grid grid-cols-1 md:grid-cols-5 min-w-[1000px] md:min-w-0 divide-y md:divide-y-0 md:divide-x divide-slate-100 text-sm print:block print:divide-none print:min-w-full">
+                          
+                          {[1, 2, 3, 4, 5].map((level) => {
+                             const levelLabels = { 1: 'Basic', 2: 'Partial', 3: 'Proficient', 4: 'Accomplished', 5: 'Exemplary' };
+                             const colors = { 1: 'red', 2: 'orange', 3: 'yellow', 4: 'green', 5: 'blue' };
+                             const color = colors[level];
+                             
+                             return (
+                               <div key={level} className="flex flex-col print:border-t print:border-slate-300 print:mb-2 print:pb-2">
+                                 {/* Header */}
+                                 <div className={`p-2 bg-${color}-50 text-${color}-800 font-bold text-center border-b border-${color}-100 print:bg-white print:text-black print:text-left print:border-none print:px-0 print:py-1 print:underline`}>
+                                   <span className="hidden print:inline mr-2">{level}.</span> {levelLabels[level]}
+                                 </div>
+                                 
+                                 {/* Content */}
+                                 <div className={`p-3 space-y-3 flex-1 bg-${color}-50/10 print:bg-white print:p-0 print:pl-4`}>
+                                   {el.levels[level]?.map((text, idx) => {
+                                     const isChecked = !!checks[`${el.id}-${level}-${idx}`];
+                                     return (
+                                       <label key={idx} className="flex gap-2 items-start cursor-pointer group print:cursor-default">
+                                         <div className={`mt-0.5 text-${color}-500 no-print`}>
+                                           {isChecked ? <CheckSquare size={16} className="fill-current"/> : <Square size={16} className="group-hover:opacity-75"/>}
+                                         </div>
+                                         {/* Print specific checkbox representation */}
+                                         <div className="hidden print:block mt-1 font-bold min-w-[20px]">
+                                            {isChecked ? '[x]' : '[ ]'}
+                                         </div>
+
+                                         <input 
+                                           type="checkbox" 
+                                           className="hidden"
+                                           checked={isChecked}
+                                           onChange={() => handleCheck(el.id, level, idx)}
+                                         />
+                                         <span className={`text-xs leading-relaxed ${isChecked ? 'text-slate-900 font-bold' : 'text-slate-500 print:text-black'}`}>
+                                           {text}
+                                         </span>
+                                       </label>
+                                     );
+                                   })}
+                                 </div>
+                               </div>
+                             );
+                          })}
+
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         ))}
-      </div>
+        </div>
 
-      <footer className="mt-12 text-center text-slate-500 text-sm">
-        <p>Based on classroom observation notes for Erin Trigonoplos and Leslie Gardner.</p>
-      </footer>
+        <div className="text-center text-slate-400 text-xs py-8 no-print">
+           Note: This tool is for estimation and self-reflection purposes. Refer to the official CDE documentation for formal evaluations.
+        </div>
+
+      </div>
     </div>
   );
-}
+};
+
+export default RubricTool;
